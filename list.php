@@ -11,14 +11,15 @@ $TRAKT = array(
 //grabs ALL data for top15 movies
 $traktresult = top15movie($TRAKT);
 //grabs review from tmdb for a movie
-$tmdbreviews = gettmdbreviews($traktresult);
- var_dump($tmdbreviews);
+//$tmdbreview = gettmdbreview($traktresult);
+ //var_dump($tmdbreviews);
+ //print_r($tmdbreview);
  //print_r($tmdbreviews->results);
 //echo '<pre>' . var_export($tmdbreviews, true) . '</pre>';
 
-
+//grabs the list of topmovies
 function top15movie($config) {
-  $url = TRAKT_URL . '/movies/trending?limit=15';
+  $url = TRAKT_URL . '/movies/trending?limit=10';
   $headers = array(
     "Content-Type:application/json",
     "trakt-api-version:2",
@@ -46,11 +47,10 @@ function top15movie($config) {
 
 }
 /******************TMDB PORTION BELOW*****************************/
-function gettmdbreviews($traktresult){
+//gets all reviews for a particular movie
+function gettmdbreview($movieid){
 
-    foreach ($traktresult as $id){
-    $babyurl = (string) $id->movie->ids->tmdb;
-    $url = "http://api.themoviedb.org/3/movie/$babyurl/reviews?api_key=1008033c4d3429e0fad13fc9b6f9fa2d";
+    $url = "http://api.themoviedb.org/3/movie/$movieid/reviews?api_key=1008033c4d3429e0fad13fc9b6f9fa2d";
 
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
@@ -62,36 +62,74 @@ function gettmdbreviews($traktresult){
 
     curl_close($ch);
 
-    $final =  json_decode(($results), true);
+    $final =  json_decode($results);
 
-    }
 
     return $final;
 }
+//gets movie details from tmdb. i am using it just for getting the poster path
+function gettmdbmovie($id){
+    $url = "https://api.themoviedb.org/3/movie/$id?api_key=1008033c4d3429e0fad13fc9b6f9fa2d&language=en-US";
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_HEADER, 0);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_FAILONERROR, 1);
+
+    $results = curl_exec($ch);
+
+    curl_close($ch);
+
+    $final =  json_decode($results);
 
 
+    return $final;
+}
+//var_dump($test->poster_path);
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <script type="text/javascript" src="#" ></script>
-    <link rel="stylesheet" href="./css/styles.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.css">
     <meta name="viewport" content="width=device-width">
     <title>Movie Review Page</title>
 </head>
 <body>
     <table>
-        <tr>
-            <th>Title(Year)</th>
-            <th>Poster</th>
-            <th>Review</th>
-        </tr>
+
         <?php foreach($traktresult as $movie){ ?>
             <tr>
-                <td><?=$movie->movie->title;?>(<?=$movie->movie->year;?>)</td>
-                <td>this is space for poster</td>
-                <td><?php //print_r($tmdbreviews->results[0]->content);?></td>
+                <td>
+                    <h2><?=$movie->movie->title;?>(<?=$movie->movie->year;?>)</h2>
+                    <div>
+                    <?php
+                        $moviedetail = gettmdbmovie($movie->movie->ids->tmdb);
+                        $posterpath = $moviedetail->poster_path;
+                        echo '<img src='."https://image.tmdb.org/t/p/original/$posterpath".' alt='."movie poster".' width='."300".' height='."400".'>';
+
+                    ?>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <?php $review = gettmdbreview($movie->movie->ids->tmdb);
+                if ($review->results[0]->author == NULL){
+                    echo 'no reviews at the moment';
+                }
+                else {
+                    foreach ($review->results as $r) {
+                        //$author = $review->results[0]->author;
+                        //$content = $review->results[0]->content;
+                        print_r('Author: '.$review->results[0]->author.' Review: '.$review->results[0]->content);
+                    }
+                }
+                    ?>
+                </td>
             </tr>
 
         <?php }?>
