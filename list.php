@@ -92,48 +92,51 @@ function gettmdbmovie($id){
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <link rel="stylesheet" href="./css/styles.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.css">
+    <script type="text/javascript" src="./JS/myjs.js" ></script>
     <meta name="viewport" content="width=device-width">
     <title>Movie Review Page</title>
 </head>
 <body>
-    <table>
+
 
         <?php foreach($traktresult as $movie){ ?>
-            <tr>
-                <td>
+            <div class="movie">
+                <div class="movieinfo">
                     <h2><?=$movie->movie->title;?>(<?=$movie->movie->year;?>)</h2>
-                    <div>
-                    <?php
+                </div>
+
+                <div class="review">
+                    <div class="pic">
+                        <?php
                         $moviedetail = gettmdbmovie($movie->movie->ids->tmdb);
                         $posterpath = $moviedetail->poster_path;
                         echo '<img src='."https://image.tmdb.org/t/p/original/$posterpath".' alt='."movie poster".' width='."300".' height='."400".'>';
 
-                    ?>
+                        ?>
                     </div>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <?php $review = gettmdbreview($movie->movie->ids->tmdb);
-                if ($review->results[0]->author == NULL){
-                    echo 'no reviews at the moment';
-                }
-                else {
-                    foreach ($review->results as $r) {
-                        //$author = $review->results[0]->author;
-                        //$content = $review->results[0]->content;
-                        print_r('Author: '.$review->results[0]->author.' Review: '.$review->results[0]->content);
-                    }
-                }
-                    ?>
-                </td>
-            </tr>
+                    <button class="showit">Show Reviews</button>
+                    <div class="panel" style="display: none;">
+                            <?php $review = gettmdbreview($movie->movie->ids->tmdb);
+                        if ($review->results[0]->author == NULL){
+                            echo 'no reviews at the moment';
+                        }
+                        else {
+                            foreach ($review->results as $r) {
+                                //$author = $review->results[0]->author;
+                                //$content = $review->results[0]->content;
+                                print_r('Author: '.$review->results[0]->author.' Review: '.$review->results[0]->content);
+                            }
+                        }
+                        ?>
+                    </div>
+                </div>
+            </div>
 
         <?php }?>
-    </table>
 
 
 </body>
